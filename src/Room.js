@@ -2,6 +2,8 @@
  * @typedef {import('./Client')} Client
  */
 
+const ConnectionError = require('./ConnectionError');
+
 /**
  * @typedef {string} RoomID A unique ID for a Room.
  */
@@ -58,7 +60,7 @@ class Room {
       throw new Error(`Client is already added to room ${this.id}`);
     }
     if (this.clients.length >= this.maxClients) {
-      throw new Error(`Too many clients are connected to room ${this.id}`);
+      throw new ConnectionError(ConnectionError.Overloaded, `Too many clients are connected to room ${this.id}`);
     }
     this.clients.push(client);
   }
