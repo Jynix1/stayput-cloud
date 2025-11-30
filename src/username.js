@@ -1,8 +1,6 @@
 const naughty = require('./naughty');
-const fetch = require('node-fetch');
 const logger = require('./logger');
 const config = require('./config');
-const https = require('https');
 
 /** Maximum length of usernames, inclusive. */
 const MAX_LENGTH = 20;
@@ -38,10 +36,6 @@ function isGenerated(username) {
   return ANONYMIZE.test(username) || username === 'player' || username === 'scratchattach';
 }
 
-const agent = new https.Agent({
-  keepAlive: true
-});
-
 /**
  * @param {unknown} username
  * @returns {Promise<boolean>}
@@ -61,11 +55,11 @@ function isValidUsername(username) {
   }
   const start = Date.now();
   return fetch(API.replace('$username', username), {
+    keepalive: true,
     headers: {
       referer: REFERER
     },
-    timeout: 1000 * 10,
-    agent
+    signal: AbortSignal.timeout(5000)
   })
     .then((res) => {
       if (res.ok) {
