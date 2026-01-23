@@ -50,6 +50,7 @@ class Client {
      * @type {string}
      */
     this.origin = (req && req.headers['origin']) || 'none';
+    this.bucket = -1;
     this.updateLogPrefix();
   }
 
