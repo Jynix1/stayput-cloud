@@ -64,40 +64,26 @@ function createSetMessage(name, value) {
   });
 }
 
-/** @type {Map<Client, [string, string | number][]>} */
-const bufferedUpdates = new Map();
 function sendBuffered() {
-  if (bufferedUpdates.size === 0) {
-    return;
-  }
-  for (const [client, updates] of bufferedUpdates.entries()) {
-    const dataToSend = updates
-      .map(([name, value]) => createSetMessage(name, value))
-      .join('\n');
+  for (const client of connectionManager.allClients) {
+    if (client.isDraining || client.bufferedVariableSets.size === 0) {
+      continue;
+    }
+
+    let dataToSend = '';
+    for (const [name, value] of client.bufferedVariableSets.entries()) {
+      if (dataToSend.length > 0) dataToSend += '\n';
+      dataToSend += createSetMessage(name, value);
+    }
     stats.recordBytesSent(client, dataToSend.length);
     client.send(dataToSend);
+    client.bufferedVariableSets.clear();
   }
-  bufferedUpdates.clear();
 }
 
 function sendSetMessageToClient(client, name, value) {
   if (config.bufferSends) {
-    let clientMessages = bufferedUpdates.get(client);
-    if (!clientMessages) {
-      clientMessages = [];
-      bufferedUpdates.set(client, clientMessages);
-    }
-
-    // If there is already a buffered update for this variable, replace it
-    for (const message of clientMessages) {
-      if (message[0] === name) {
-        message[1] = value;
-        return;
-      }
-    }
-
-    // Otherwise, add a new buffered update
-    clientMessages.push([name, value]);
+    client.bufferedVariableSets.set(name, value);
   } else {
     const dataToSend = createSetMessage(name, value);
     stats.recordBytesSent(client, dataToSend.length);

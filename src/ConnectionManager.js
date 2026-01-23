@@ -26,6 +26,10 @@ class ConnectionManager {
     for (let i = 0; i < this.numberBuckets; i++) {
       this.clientBuckets.push(new Set());
     }
+    /**
+     * @type {Set<Client>}
+     */
+    this.allClients = new Set();
   }
 
   /**
@@ -80,6 +84,7 @@ class ConnectionManager {
   handleConnect(client) {
     client.bucket = this.getNextClientBucket();
     this.clientBuckets[client.bucket].add(client);
+    this.allClients.add(client);
   }
 
   /**
@@ -88,6 +93,7 @@ class ConnectionManager {
    */
   handleDisconnect(client) {
     this.clientBuckets[client.bucket].delete(client);
+    this.allClients.delete(client);
   }
 
   /**

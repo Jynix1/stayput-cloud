@@ -51,6 +51,9 @@ class Client {
      */
     this.origin = (req && req.headers['origin']) || 'none';
     this.bucket = -1;
+    this.isDraining = false;
+    this.bufferedVariableSets = new Map();
+    this.handleSent = this.handleSent.bind(this);
     this.updateLogPrefix();
   }
 
@@ -106,7 +109,12 @@ class Client {
       this.log('Cannot send message; readyState ' + this.ws.readyState);
       return;
     }
-    this.ws.send(data);
+    this.isDraining = true;
+    this.ws.send(data, this.handleSent);
+  }
+
+  handleSent() {
+    this.isDraining = false;
   }
 
   /**
