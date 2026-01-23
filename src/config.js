@@ -18,11 +18,11 @@ module.exports = {
   anonymizeGeneratedUsernames: true,
 
   // change this to an object to enable the WebSocket per-message deflate extension
-  perMessageDeflate: false,
+  perMessageDeflate: {},
 
   // If set to a non-zero number, sends will be buffered to this many per second
   // This can significantly improve performance
-  bufferSends: 30,
+  bufferSends: 10,
 
   enableRename: false,
 

@@ -14,6 +14,14 @@ const readBlockedProjects = () => {
 const blockedProjects = readBlockedProjects();
 logger.info(`Blocked projects: ${blockedProjects.length}`);
 
-const isProjectBlocked = (id) => blockedProjects.includes(id);
+const isProjectBlocked = (id) => {
+  if (
+    /sprunki/i.test(id) ||
+    /incredibox/i.test(id)
+  ) {
+    return true;
+  } 
+  return blockedProjects.includes(id);
+};
 
 module.exports = isProjectBlocked;
