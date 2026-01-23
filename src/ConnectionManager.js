@@ -46,6 +46,7 @@ class ConnectionManager {
       }
     }
 
+    const timedOut = [];
     this.clientBuckets[bucketNumber].forEach((client) => {
       if (!client.ws) {
         client.timedOut('no ws');
@@ -69,6 +70,10 @@ class ConnectionManager {
       // Clients are sent a ping, and expected to respond to the ping by the time the next ping will be sent.
       client.ping();
     });
+
+    for (const client of timedOut) {
+      this.handleDisconnect(client);
+    }
   }
 
   getNextClientBucket () {
@@ -92,6 +97,7 @@ class ConnectionManager {
    * @param {Client} client The Client disconnecting.
    */
   handleDisconnect(client) {
+    client.room?.removeClient(client);
     this.clientBuckets[client.bucket].delete(client);
     this.allClients.delete(client);
   }

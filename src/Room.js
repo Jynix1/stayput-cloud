@@ -68,12 +68,11 @@ class Room {
   /**
    * Remove a client.
    * @param {Client} client The client to remove
-   * @throws Will throw if the client is not part of this room.
    */
   removeClient(client) {
     const index = this.clients.indexOf(client);
     if (index === -1) {
-      throw new Error(`Client is not part of room ${this.id}`);
+      return;
     }
     this.clients.splice(index, 1);
     this.lastDisconnectTime = Date.now();

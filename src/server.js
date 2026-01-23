@@ -76,8 +76,10 @@ function sendBuffered() {
       dataToSend += createSetMessage(name, value);
     }
     stats.recordBytesSent(client, dataToSend.length);
-    client.send(dataToSend);
     client.bufferedVariableSets.clear();
+    if (!client.send(dataToSend)) {
+      connectionManager.handleDisconnect(client);
+    }
   }
 }
 
@@ -87,7 +89,9 @@ function sendSetMessageToClient(client, name, value) {
   } else {
     const dataToSend = createSetMessage(name, value);
     stats.recordBytesSent(client, dataToSend.length);
-    client.send(dataToSend);
+    if (!client.send(dataToSend)) {
+      connectionManager.handleDisconnect(client);
+    }
   }
 }
 
