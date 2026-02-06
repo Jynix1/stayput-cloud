@@ -8,12 +8,20 @@ const config = require('./config');
 const {wss, connectionManager} = require('./server');
 const stats = require('./stats');
 
-const handleStats = (req, res) => {
-  res.setHeader('Cache-Control', 'public, max-age=30');
+const PUBLIC_STATS_REFRESH_SECONDS = 10;
+
+const publicStats = {
+  concurrents: 0
+};
+
+const updatePublicStatistics = () => {
+  publicStats.concurrents = connectionManager.allClients.size;
+};
+
+const sendPublicStatistics = (req, res) => {
+  res.setHeader('Cache-Control', `public, max-age=${PUBLIC_STATS_REFRESH_SECONDS}`);
   res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({
-    concurrents: connectionManager.allClients.size
-  }));
+  res.end(JSON.stringify(publicStats));
 };
 
 // We serve static files over HTTP
@@ -25,7 +33,7 @@ const server = http.createServer(function handler(req, res) {
   res.setHeader('Permissions-Policy', 'interest-cohort=()');
 
   if (req.url === '/api/stats') {
-    handleStats(req, res);
+    sendPublicStatistics(req, res);
     return;
   }
   
@@ -46,7 +54,8 @@ server.on('close', function() {
   wss.close();
 });
 
-setInterval(stats.printStats, 1000 * 60 * 60);
+setInterval(stats.printStats, 1000 * 60 * 60).unref();
+setInterval(updatePublicStatistics, 1000 * PUBLIC_STATS_REFRESH_SECONDS).unref();
 
 const port = config.port;
 server.listen(port, function() {
