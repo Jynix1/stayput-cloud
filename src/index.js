@@ -5,8 +5,16 @@ const serveStatic = require('serve-static');
 
 const logger = require('./logger');
 const config = require('./config');
-const wss = require('./server');
+const {wss, connectionManager} = require('./server');
 const stats = require('./stats');
+
+const handleStats = (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=30');
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({
+    concurrents: connectionManager.allClients.size
+  }));
+};
 
 // We serve static files over HTTP
 const serve = serveStatic('public');
@@ -15,6 +23,12 @@ const server = http.createServer(function handler(req, res) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'interest-cohort=()');
+
+  if (req.url === '/api/stats') {
+    handleStats(req, res);
+    return;
+  }
+  
   // @ts-ignore
   serve(req, res, finalhandler(req, res));
 });
